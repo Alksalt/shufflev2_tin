@@ -1,0 +1,12 @@
+version: 1
+precision: amp
+channels_last: true
+tf32: true
+cudnn_benchmark: true
+grad_accum_steps: 1
+
+# Determinism: set true only to repro exact bugs (slower)
+deterministic: false
+
+# Sanity/mini-runs
+debug_mode: false

@@ -1,0 +1,15 @@
+version: 1
+epochs: 80
+batch_size: 256
+criterion: cross_entropy
+label_smoothing: 0.1
+metrics: [top1, top2]
+
+onecycle:
+  enabled: true
+  max_lr: 0.003
+  pct_start: 0.1
+  anneal_strategy: cos
+  div_factor: 25.0
+  final_div_factor: 10000.0
+

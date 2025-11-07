@@ -1,0 +1,13 @@
+version: 1
+arch: shufflenetv2
+width_mult: 1.0
+num_classes: 200
+dropout: 0.1
+last_pool: global_avg
+norm: bn
+act: relu
+
+# out_channels: [stem, stage2, stage3, stage4, final]
+out_channels: [24, 116, 232, 464, 1024]
+# Number of repeat blocks per stage (not counting the stride=2 block)
+stages: [4, 8, 4]

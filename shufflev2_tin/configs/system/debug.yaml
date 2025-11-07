@@ -1,0 +1,8 @@
+version: 1
+epochs: 2
+batch_size: 32
+subset: { train: 512, val: 512 }
+log_every: 5
+val_every: 1
+compile:
+  enabled: false

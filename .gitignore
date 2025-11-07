@@ -1,0 +1,63 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+.build/
+dist/
+pip-wheel-metadata/
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# --- Envs ---
+.venv/
+venv/
+env/
+ENV/
+*.env
+*.env.*
+
+# --- Editors/IDE ---
+.vscode/
+.idea/
+*.code-workspace
+
+# --- OS cruft ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Logs / Artifacts ---
+logs/
+checkpoints/
+runs/
+wandb/
+lightning_logs/
+outputs/
+artifacts/
+tensorboard/
+
+# --- Torch/weights ---
+*.pt
+*.pth
+*.ckpt
+*.onnx
+
+# --- Data (raw/external). DO NOT commit datasets ---
+/datasets/
+data_raw/
+data-raw/
+data_external/
+data_processed/
+data_cache/
+inputs/
+tmp/
+.cache/
+
+# If you keep code under a folder literally named "data", allow Python files:
+!**/data/*.py
+!**/data/*.ipynb

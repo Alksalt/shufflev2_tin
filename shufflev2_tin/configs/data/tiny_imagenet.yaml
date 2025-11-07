@@ -1,0 +1,22 @@
+version: 1
+dataset: tiny_imagenet
+image_size: 64
+
+workers: 8
+pin_memory: true
+persistent_workers: true
+drop_last: true
+
+split:
+  train: train
+  val: val
+
+loader:
+  shuffle_train: true
+  shuffle_val: false
+
+subset:
+  train: null
+  val: val
+
+class_map_path: null
