@@ -9,14 +9,14 @@ drop_last: true
 
 split:
   train: train
-  val: val
+  val: val/val_by_label
 
 loader:
   shuffle_train: true
   shuffle_val: false
 
 subset:
-  train: null
-  val: val
+  train: 600
+  val: 400
 
 class_map_path: null
