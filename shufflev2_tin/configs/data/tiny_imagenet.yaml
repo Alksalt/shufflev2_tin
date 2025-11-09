@@ -1,22 +1,20 @@
+# tiny_imagenet.yaml
 version: 1
 dataset: tiny_imagenet
 image_size: 64
 
-workers: 8
-pin_memory: true
-persistent_workers: true
-drop_last: true
-
-split:
-  train: train
-  val: val/val_by_label
-
-loader:
-  shuffle_train: true
-  shuffle_val: false
-
-subset:
-  train: 600
-  val: 400
-
-class_map_path: null
+data:
+  workers: 8
+  pin_memory: true
+  persistent_workers: true
+  drop_last: true
+  split:
+    train: train
+    val: val/val_by_label 
+  loader:
+    shuffle_train: true
+    shuffle_val: false
+  subset:
+    train: 600
+    val: 400
+  class_map_path: null

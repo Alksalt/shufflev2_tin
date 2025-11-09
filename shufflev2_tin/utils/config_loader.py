@@ -1,15 +1,19 @@
+# shufflev2_tin/utils/config_loader.py
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, Iterable
+from typing import Any, Dict, Iterable, Union
 import copy
 import datetime as dt
 import yaml
 
+# --------- types ---------
+PathLike = Union[str, Path]
+ManyPaths = Union[PathLike, Iterable[PathLike]]
+
 
 # ---------- YAML I/O ----------
-
-def load_yaml(path: str | Path) -> Dict[str, Any]:
+def load_yaml(path: PathLike) -> Dict[str, Any]:
     """Load a single YAML file into a dict. Empty file -> {}."""
     p = Path(path)
     if not p.exists():
@@ -22,10 +26,9 @@ def load_yaml(path: str | Path) -> Dict[str, Any]:
         raise TypeError(f"Top-lvl YAML must be a mapping (dict): {p}")
     return data
 
-# ---------- Deep merge ----------
 
-def deep_update(base: Dict[str, Any],
-                override: Dict[str, Any]) -> Dict[str, Any]:
+# ---------- Deep merge ----------
+def deep_update(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
     """
     Recursively merge two dicts without mutating inputs.
     - If both sides are dict -> recurse.
@@ -39,57 +42,79 @@ def deep_update(base: Dict[str, Any],
             a[k] = copy.deepcopy(v)
     return a
 
-def load_config(paths: Iterable[str | Path]) -> Dict[str, Any]:
-    """Load multiple YAMLs and deep-merge them left→right."""
+
+def _as_paths(paths: ManyPaths) -> Iterable[Path]:
+    """
+    Coerce str/Path or iterable of them into an iterable[Path].
+    Fixes cases where a single WindowsPath was passed.
+    """
+    if isinstance(paths, (str, Path)):
+        return [Path(paths)]
+    # materialize once in case we get a generator
+    return [Path(p) for p in list(paths)]
+
+
+def load_config(paths: ManyPaths) -> Dict[str, Any]:
+    """Load one or more YAMLs and deep-merge them left→right."""
     cfg: Dict[str, Any] = {}
-    for path in paths:
+    for path in _as_paths(paths):
         piece = load_yaml(path)
         cfg = deep_update(cfg, piece)
-    
     return cfg
+
 
 # ---------- Derived values & validation ----------
 def derive_run_dir(cfg: Dict[str, Any]) -> Path:
     """
     Compose a run directory: runs_dir / project_name / experiment_name / timestamp
-    Missing pieces fall back to sane defaults.
+    Missing pieces fall back to sane defaults. Prefers project_name/experiment_name keys.
     """
     runs_dir = Path(cfg.get("runs_dir") or cfg.get("paths", {}).get("runs_dir", "runs"))
-    proj = cfg.get("shufflev2_tin", "project")
-    exp = cfg.get("baseline_1p0_amp", "exp")
+
+    proj = (
+        cfg.get("project_name")
+        or cfg.get("shufflev2_tin")  # backward-compat odd key in older files
+        or "project"
+    )
+    exp = (
+        cfg.get("experiment_name")
+        or cfg.get("baseline_1p0_amp")  # backward-compat odd key in older files
+        or "exp"
+    )
     stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
-    return runs_dir / proj / exp / stamp
+    return runs_dir / str(proj) / str(exp) / stamp
+
 
 def _get(cfg: Dict[str, Any], key: str, default: Any = None) -> Any:
     """Shorthand for flat keys (no dot-notation)."""
     return cfg.get(key, default)
 
+
 def validate_config(cfg: Dict[str, Any]) -> None:
     """Basic assertions; extend as the project grows."""
     device = _get(cfg, "device", "cuda")
     assert device in {"cuda", "cpu"}, f"device must be 'cuda' or 'cpu' got {device}"
-    
+
     precision = _get(cfg, "precision", "amp")
     assert precision in {"amp", "fp32"}, f"precision must be amp|fp32, got {precision}"
-    
+
     img_size = _get(cfg, "image_size", None)
     assert isinstance(img_size, int), "image_size must be an int"
-    
+
     # compile section may be missing
     compile_cfg = cfg.get("compile", {})
-    
     if compile_cfg:
         if compile_cfg.get("enabled", False):
             backend = compile_cfg.get("backend", "inductor")
             mode = compile_cfg.get("mode", "default")
             assert backend in {"inductor"}, f"unsupported compile backend: {backend}"
             assert mode in {"default", "reduce-overhead", "max-autotune"}, f"bad compile mode: {mode}"
-    
+
     # Optional booleans
     for bkey in ["channels_last", "tf32", "deterministic"]:
         if bkey in cfg:
             assert isinstance(cfg[bkey], bool), f"{bkey} must be boolean"
-            
+
 
 def summarize(cfg: Dict[str, Any]) -> Dict[str, Any]:
     """Return a small dict you can pretty-print in CLI."""
@@ -105,8 +130,8 @@ def summarize(cfg: Dict[str, Any]) -> Dict[str, Any]:
         "tf32": cfg.get("tf32", False),
     }
 
-# ---------- (Optional) pretty dump for debugging ----------
 
+# ---------- (Optional) pretty dump for debugging ----------
 def pretty(cfg: Dict[str, Any]) -> str:
     """Serialize a config dict back to YAML (for logging)."""
     return yaml.safe_dump(cfg, sort_keys=False, allow_unicode=True)
@@ -121,3 +146,4 @@ __all__ = [
     "summarize",
     "pretty",
 ]
+

@@ -13,3 +13,12 @@ onecycle:
   div_factor: 25.0
   final_div_factor: 10000.0
 
+train:
+  amp: true
+  compile: true
+  channels_last: true
+  cudnn_benchmark: true
+  tf32: true
+  log_interval: 50
+  ckpt_interval: 1
+  ckpt_keep_last: 3
